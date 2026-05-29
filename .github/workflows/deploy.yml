@@ -1,0 +1,84 @@
+name: 投资大V观点日报H5发布
+
+on:
+  schedule:
+    - cron: "40 10 * * *"   # 每天18:40北京时间 (10:40 UTC)
+  workflow_dispatch:          # 支持手动触发
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 安装 Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: 安装依赖
+        run: pip install -r requirements.txt
+
+      - name: 执行H5发布任务
+        env:
+          EMAIL_ADDRESS: ${{ secrets.EMAIL_ADDRESS }}
+          EMAIL_AUTH_CODE: ${{ secrets.EMAIL_AUTH_CODE }}
+          NOTIFY_EMAIL: ${{ secrets.EMAIL_ADDRESS }}
+        run: python main.py
+
+      - name: 提交更新到仓库
+        run: |
+          STATUS=$(cat status.txt 2>/dev/null || echo "")
+          if [ "$STATUS" = "success" ]; then
+            git config user.name "H5日报机器人"
+            git config user.email "h5-bot@github.com"
+            git add index.html status.txt
+            git diff --staged --quiet || git commit -m "📰 日报更新 $(TZ='Asia/Shanghai' date +'%Y-%m-%d %H:%M')"
+            git push
+          fi
+
+      - name: 配置 Pages
+        uses: actions/configure-pages@v4
+
+      - name: 上传 Pages 产物
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'
+          name: github-pages
+
+      - name: 部署到 GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+        with:
+          artifact_name: github-pages
+
+      - name: 汇总结果
+        if: always()
+        run: |
+          STATUS=$(cat status.txt 2>/dev/null || echo "unknown")
+          echo "## 📊 运行结果" >> $GITHUB_STEP_SUMMARY
+          case "$STATUS" in
+            success)
+              echo "✅ 投资大V观点日报已更新" >> $GITHUB_STEP_SUMMARY
+              echo "🔗 固定访问链接: ${{ steps.deployment.outputs.page_url }}" >> $GITHUB_STEP_SUMMARY
+              ;;
+            no_email)
+              echo "⚠️ 今日未找到投资大V观点日报邮件，H5未更新。" >> $GITHUB_STEP_SUMMARY
+              ;;
+            format_error)
+              echo "⚠️ 邮件格式异常，未提取到HTML正文，H5未更新。" >> $GITHUB_STEP_SUMMARY
+              ;;
+            *)
+              echo "❌ 运行异常，请查看日志" >> $GITHUB_STEP_SUMMARY
+              ;;
+          esac
