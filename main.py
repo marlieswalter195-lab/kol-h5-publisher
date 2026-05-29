@@ -14,14 +14,12 @@ import email
 import os
 import re
 import sys
-import html
 from email.header import decode_header
 from email.mime.text import MIMEText
 from email.utils import parsedate_to_datetime
 from datetime import datetime, timedelta
 
 
-# ========== 配置 ==========
 EMAIL_ADDRESS = os.environ.get("EMAIL_ADDRESS", "")
 EMAIL_AUTH_CODE = os.environ.get("EMAIL_AUTH_CODE", "")
 NOTIFY_EMAIL = os.environ.get("NOTIFY_EMAIL", EMAIL_ADDRESS)
@@ -30,7 +28,7 @@ IMAP_PORT = 993
 SMTP_SERVER = "smtp.qq.com"
 SMTP_PORT = 465
 SEARCH_DAYS = 2
-PAGES_URL = os.environ.get("PAGES_URL", "https://<你的用户名>.github.io/kol-h5-publisher/")
+PAGES_URL = "https://marlieswalter195-lab.github.io/kol-h5-publisher/"
 
 
 def decode_mime(text):
@@ -50,64 +48,96 @@ def decode_mime(text):
 
 
 def extract_body(msg):
+    """提取邮件正文，返回原始HTML"""
     html_body = ""
-    text_body = ""
     if msg.is_multipart():
         for part in msg.walk():
-            content_type = part.get_content_type()
-            if content_type == "text/html" and not html_body:
+            if part.get_content_type() == "text/html" and not html_body:
                 try:
                     html_body = part.get_payload(decode=True).decode(
                         part.get_content_charset() or "utf-8", errors="replace")
                 except Exception:
                     pass
-            elif content_type == "text/plain" and not text_body:
-                try:
-                    text_body = part.get_payload(decode=True).decode(
-                        part.get_content_charset() or "utf-8", errors="replace")
-                except Exception:
-                    pass
     else:
         try:
-            payload = msg.get_payload(decode=True).decode(
-                msg.get_content_charset() or "utf-8", errors="replace")
             if msg.get_content_type() == "text/html":
-                html_body = payload
-            else:
-                text_body = payload
+                html_body = msg.get_payload(decode=True).decode(
+                    msg.get_content_charset() or "utf-8", errors="replace")
         except Exception:
             pass
-    if html_body:
-        try:
-            from bs4 import BeautifulSoup
-            soup = BeautifulSoup(html_body, "html.parser")
-            for tag in soup(["script", "style"]):
-                tag.decompose()
-            text_body = soup.get_text(separator="\n", strip=True)
-        except Exception:
-            pass
-    return text_body, html_body
+    return html_body
 
 
 def extract_h5_from_body(body_html):
+    """提取并重构H5"""
     start = body_html.rfind("【HTML正文开始】")
     end = body_html.rfind("【HTML正文结束】")
     if start < 0 or end <= start:
         return None
-    code = body_html[start + len("【HTML正文开始】"):end].strip()
-    code = html.unescape(code)
-    code = re.sub(r'^</?\w+[^>]*>\s*', '', code)
-    code = re.sub(r'\s*</?\w+[^>]*>$', '', code)
-    first_newline = code.find("\n")
-    if 0 < first_newline < 100:
-        candidate = code[:first_newline].strip()
-        if candidate and not re.match(r'^[<.@*#{\[]', candidate):
-            code = code[first_newline:].strip()
-    return code if len(code) > 100 else None
+
+    raw = body_html[start + len("【HTML正文开始】"):end].strip()
+    import html as html_mod
+    raw = html_mod.unescape(raw)
+
+    # 去掉包裹标签
+    raw = re.sub(r'^</?\w+[^>]*>\s*', '', raw)
+    raw = re.sub(r'\s*</?\w+[^>]*>$', '', raw)
+
+    # 跳过首行非CSS/HTML标题
+    first_nl = raw.find("\n")
+    if 0 < first_nl < 100:
+        candidate = raw[:first_nl].strip()
+        if candidate and not re.match(r'^[<.@*#{\[a-z]', candidate):
+            raw = raw[first_nl:].strip()
+
+    if len(raw) < 100:
+        return None
+
+    # 找到CSS结束位置（第一个非CSS/空行之后的内容块）
+    # CSS特征：以}结尾的块、以/*开头的注释、以.或#或@开头的规则
+    lines = raw.split("\n")
+    content_start = 0
+    in_css = True
+    for i, line in enumerate(lines):
+        stripped = line.strip()
+        if in_css:
+            if (stripped and not stripped.startswith(".") and 
+                not stripped.startswith("#") and not stripped.startswith("@") and
+                not stripped.startswith("*") and not stripped.startswith("body") and
+                not stripped.startswith("}") and not stripped.startswith("/") and
+                not stripped.startswith(":") and not re.match(r'^[a-z-]+', stripped)):
+                # 可能是HTML内容开始
+                content_start = i
+                in_css = False
+
+    css = "\n".join(lines[:content_start]).strip()
+    body_content = "\n".join(lines[content_start:]).strip()
+
+    # 构建完整HTML
+    title = "投资大V观点日报"
+    date_match = re.search(r'(\d{4})年(\d{2})月(\d{2})日', lines[0].strip() if lines else "")
+    if date_match:
+        title = f"投资大V观点日报 - {date_match.group(0)}"
+
+    html = f"""<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{title}</title>
+<style>
+{css}
+</style>
+</head>
+<body>
+{body_content}
+</body>
+</html>"""
+
+    return html if len(html) > 200 else None
 
 
 def send_notification(subject, body):
-    """通过QQ邮箱SMTP发送通知"""
     try:
         msg = MIMEText(body, "plain", "utf-8")
         msg["Subject"] = subject
@@ -131,7 +161,6 @@ def main():
         print("❌ 错误: 未配置邮箱地址或授权码")
         sys.exit(1)
 
-    # 1. 连接QQ邮箱
     print(f"\n📧 连接QQ邮箱: {EMAIL_ADDRESS}")
     try:
         mail = imaplib.IMAP4_SSL(IMAP_SERVER, IMAP_PORT)
@@ -141,7 +170,6 @@ def main():
         print(f"❌ 邮箱连接失败: {e}")
         sys.exit(1)
 
-    # 2. 搜索邮件
     since_date = (datetime.now() - timedelta(days=SEARCH_DAYS)).strftime("%d-%b-%Y")
     status, messages = mail.search(None, f'(SINCE "{since_date}")')
     if status != "OK":
@@ -152,7 +180,6 @@ def main():
     msg_ids = messages[0].split()
     print(f"找到 {len(msg_ids)} 封最近{SEARCH_DAYS}天的邮件")
 
-    # 3. 查找目标邮件
     target_email = None
     for msg_id in reversed(msg_ids):
         status, data = mail.fetch(msg_id, "(RFC822)")
@@ -167,16 +194,15 @@ def main():
                 date = parsedate_to_datetime(date_str)
             except Exception:
                 date = datetime.now()
-            body_text, body_html = extract_body(msg)
+            body_html = extract_body(msg)
             target_email = {"subject": subject, "date": date.isoformat(),
-                           "body_text": body_text, "body_html": body_html}
+                           "body_html": body_html}
             print(f"✅ 找到目标邮件: {subject}")
             print(f"   发送时间: {date}")
             break
 
     mail.logout()
 
-    # 4. 未找到目标邮件
     if target_email is None:
         msg_text = f"⏰ {datetime.now():%Y-%m-%d %H:%M}\n\n今日未找到投资大V观点日报邮件，H5未更新。"
         print(f"\n⚠️ {msg_text}")
@@ -185,9 +211,8 @@ def main():
             f.write("no_email")
         sys.exit(0)
 
-    # 5. 提取H5源码
     html_code = extract_h5_from_body(target_email["body_html"])
-    if html_code is None or len(html_code) < 100:
+    if html_code is None or len(html_code) < 200:
         msg_text = f"⏰ {datetime.now():%Y-%m-%d %H:%M}\n\n邮件格式异常，未提取到HTML正文，H5未更新。\n邮件标题: {target_email['subject']}"
         print(f"\n⚠️ {msg_text}")
         send_notification("日报H5: 格式异常", msg_text)
@@ -195,13 +220,11 @@ def main():
             f.write("format_error")
         sys.exit(0)
 
-    # 6. 覆盖写入
     with open("index.html", "w", encoding="utf-8") as f:
         f.write(html_code)
     with open("status.txt", "w", encoding="utf-8") as f:
         f.write("success")
 
-    # 7. 发送成功通知
     now = datetime.now()
     success_msg = (
         f"投资大V观点日报已更新\n\n"
