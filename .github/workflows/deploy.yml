@@ -7,15 +7,10 @@ on:
 
 permissions:
   contents: write
-  pages: write
-  id-token: write
 
 jobs:
   publish:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
       - name: 检出代码
@@ -47,30 +42,15 @@ jobs:
             git push
           fi
 
-      - name: 配置 Pages
-        uses: actions/configure-pages@v4
-
-      - name: 上传 Pages 产物
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: '.'
-          name: github-pages
-
-      - name: 部署到 GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
-        with:
-          artifact_name: github-pages
-
       - name: 汇总结果
         if: always()
         run: |
           STATUS=$(cat status.txt 2>/dev/null || echo "unknown")
           echo "## 📊 运行结果" >> $GITHUB_STEP_SUMMARY
+          echo "🔗 固定访问链接: https://marlieswalter195-lab.github.io/kol-h5-publisher/" >> $GITHUB_STEP_SUMMARY
           case "$STATUS" in
             success)
               echo "✅ 投资大V观点日报已更新" >> $GITHUB_STEP_SUMMARY
-              echo "🔗 固定访问链接: ${{ steps.deployment.outputs.page_url }}" >> $GITHUB_STEP_SUMMARY
               ;;
             no_email)
               echo "⚠️ 今日未找到投资大V观点日报邮件，H5未更新。" >> $GITHUB_STEP_SUMMARY
