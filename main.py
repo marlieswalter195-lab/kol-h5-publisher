@@ -69,55 +69,72 @@ def extract_body(msg):
 
 
 def extract_h5_from_body(body_html):
-    """提取并重构H5"""
-    start = body_html.rfind("【HTML正文开始】")
-    end = body_html.rfind("【HTML正文结束】")
-    if start < 0 or end <= start:
-        return None
-
-    raw = body_html[start + len("【HTML正文开始】"):end].strip()
+    """从邮件正文提取Base64编码的H5源码并解码，补全HTML文档结构"""
+    import base64
     import html as html_mod
-    raw = html_mod.unescape(raw)
 
-    # 去掉包裹标签
-    raw = re.sub(r'^</?\w+[^>]*>\s*', '', raw)
-    raw = re.sub(r'\s*</?\w+[^>]*>$', '', raw)
+    content = None
 
-    # 跳过首行非CSS/HTML标题
-    first_nl = raw.find("\n")
-    if 0 < first_nl < 100:
-        candidate = raw[:first_nl].strip()
-        if candidate and not re.match(r'^[<.@*#{\[a-z]', candidate):
-            raw = raw[first_nl:].strip()
+    # 新格式：Base64编码
+    start = body_html.rfind("【HTML_BASE64_START】")
+    end = body_html.rfind("【HTML_BASE64_END】")
+    if start >= 0 and end > start:
+        b64 = body_html[start + len("【HTML_BASE64_START】"):end].strip()
+        b64 = re.sub(r'</?\w+[^>]*>', '', b64)
+        b64 = html_mod.unescape(b64)
+        b64 = b64.replace('\r', '').replace('\n', '').replace(' ', '')
+        try:
+            decoded = base64.b64decode(b64).decode("utf-8")
+            if len(decoded) > 200:
+                content = decoded
+        except Exception:
+            pass
 
-    if len(raw) < 100:
+    # 旧格式兼容
+    if not content:
+        start = body_html.rfind("【HTML正文开始】")
+        end = body_html.rfind("【HTML正文结束】")
+        if start >= 0 and end > start:
+            raw = body_html[start + len("【HTML正文开始】"):end].strip()
+            raw = html_mod.unescape(raw)
+            raw = re.sub(r'^</?\w+[^>]*>\s*', '', raw)
+            raw = re.sub(r'\s*</?\w+[^>]*>$', '', raw)
+            if len(raw) > 100:
+                content = raw
+
+    if not content:
         return None
 
-    # 找到CSS结束位置（第一个非CSS/空行之后的内容块）
-    # CSS特征：以}结尾的块、以/*开头的注释、以.或#或@开头的规则
-    lines = raw.split("\n")
+    # 如果已经有完整HTML结构（<html>或<!DOCTYPE），直接返回
+    if '<!DOCTYPE html>' in content.lower() or '<html' in content.lower():
+        return content
+
+    # 需要补全文档结构：分离CSS和正文内容
+    # 跳过首行标题
+    first_nl = content.find("\n")
+    if 0 < first_nl < 100:
+        candidate = content[:first_nl].strip()
+        if candidate and not re.match(r'^[<.@*#{\[a-z]', candidate):
+            content = content[first_nl:].strip()
+
+    lines = content.split("\n")
     content_start = 0
-    in_css = True
     for i, line in enumerate(lines):
         stripped = line.strip()
-        if in_css:
-            if (stripped and not stripped.startswith(".") and 
-                not stripped.startswith("#") and not stripped.startswith("@") and
-                not stripped.startswith("*") and not stripped.startswith("body") and
-                not stripped.startswith("}") and not stripped.startswith("/") and
-                not stripped.startswith(":") and not re.match(r'^[a-z-]+', stripped)):
-                # 可能是HTML内容开始
-                content_start = i
-                in_css = False
+        if (stripped and not stripped.startswith(".") and 
+            not stripped.startswith("#") and not stripped.startswith("@") and
+            not stripped.startswith("*") and not stripped.startswith("body") and
+            not stripped.startswith("}") and not stripped.startswith("/") and
+            not stripped.startswith(":") and not re.match(r'^[a-z-]+', stripped)):
+            content_start = i
+            break
 
     css = "\n".join(lines[:content_start]).strip()
     body_content = "\n".join(lines[content_start:]).strip()
 
-    # 构建完整HTML
-    title = "投资大V观点日报"
-    date_match = re.search(r'(\d{4})年(\d{2})月(\d{2})日', lines[0].strip() if lines else "")
-    if date_match:
-        title = f"投资大V观点日报 - {date_match.group(0)}"
+    # 提取日期作为标题
+    date_match = re.search(r'(\d{4})年(\d{2})月(\d{2})日', content)
+    title = f"投资大V观点日报 - {date_match.group(0)}" if date_match else "投资大V观点日报"
 
     html = f"""<!DOCTYPE html>
 <html lang="zh-CN">
