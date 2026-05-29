@@ -1,0 +1,449 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", sans-serif;
+    background: #f0f2f5;
+    color: #1a1a1a;
+    font-size: 15px;
+    line-height: 1.65;
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.container {
+    width: 100%;
+    max-width: 100%;
+    padding: 0 0 24px 0;
+}
+
+/* ─── 顶部 Hero ─── */
+.header {
+    background: linear-gradient(135deg, #c53030 0%, #e53e3e 60%, #fc8181 100%);
+    color: #fff;
+    padding: 28px 16px 22px;
+    text-align: center;
+}
+.header h1 {
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    margin-bottom: 6px;
+}
+.header .subtitle {
+    font-size: 12px;
+    opacity: 0.85;
+    margin-bottom: 4px;
+}
+.header .subtitle2 {
+    font-size: 11px;
+    opacity: 0.65;
+}
+
+/* 统计条 */
+.stats {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    margin: 14px 8px 0;
+    flex-wrap: wrap;
+}
+.stat-card {
+    background: rgba(255,255,255,0.18);
+    backdrop-filter: blur(8px);
+    border-radius: 10px;
+    padding: 8px 14px;
+    text-align: center;
+    min-width: 64px;
+}
+.stat-card .num {
+    font-size: 22px;
+    font-weight: 800;
+    line-height: 1.1;
+}
+.stat-card .label {
+    font-size: 10px;
+    opacity: 0.75;
+    margin-top: 2px;
+}
+
+/* ─── 分类区块 ─── */
+.section-block {
+    margin: 12px 10px 0;
+}
+.section-head {
+    font-size: 16px;
+    font-weight: 700;
+    padding: 14px 0 8px 4px;
+    border-bottom: 2px solid currentColor;
+    margin-bottom: 10px;
+}
+
+/* ─── 共识卡片 ─── */
+.consensus-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 14px 14px 12px;
+    margin-bottom: 10px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+.card-top {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+.consensus-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+.consensus-direction {
+    font-size: 15px;
+    font-weight: 700;
+    color: #1a202c;
+    line-height: 1.4;
+}
+.card-logic {
+    font-size: 14px;
+    color: #4a5568;
+    line-height: 1.7;
+    margin-bottom: 10px;
+    padding: 10px 12px;
+    background: #f7fafc;
+    border-radius: 8px;
+    border-left: 3px solid #e2e8f0;
+}
+.card-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-bottom: 2px;
+}
+.tag-chip {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    line-height: 1.4;
+}
+.tag-sector { background: #ebf8ff; color: #2b6cb0; }
+.tag-stock { background: #fffaf0; color: #c05621; }
+.tag-kol { background: #f0fff4; color: #276749; }
+
+/* ─── 原文链接区（弱化） ─── */
+.source-section {
+    margin-top: 8px;
+    padding-top: 6px;
+    border-top: 1px solid #edf2f7;
+    font-size: 11px;
+    color: #a0aec0;
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 2px 6px;
+}
+.source-label {
+    color: #cbd5e0;
+    margin-right: 2px;
+    flex-shrink: 0;
+}
+.source-links-inline {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 0;
+}
+.source-link {
+    color: #a0aec0;
+    text-decoration: none;
+    font-size: 11px;
+    white-space: nowrap;
+    padding: 1px 0;
+    -webkit-tap-highlight-color: transparent;
+}
+.source-link::after {
+    content: " · ";
+    color: #e2e8f0;
+    margin: 0 2px;
+}
+.source-link:last-child::after {
+    content: "";
+    margin: 0;
+}
+.source-link:active {
+    color: #4a5568;
+}
+
+/* ─── 底部 ─── */
+.footer {
+    text-align: center;
+    padding: 20px 16px;
+    font-size: 11px;
+    color: #a0aec0;
+    line-height: 1.8;
+}
+.footer .divider {
+    display: block;
+    width: 40px;
+    height: 1px;
+    background: #e2e8f0;
+    margin: 12px auto;
+}
+
+/* ─── 微信适配 ─── */
+@media screen and (min-width: 768px) {
+    .container { max-width: 600px; margin: 0 auto; }
+    .section-block { margin: 12px 0 0; }
+}
+
+
+
+
+    
+
+        
+📊 投资大V观点日报
+        
+2026年05月29日 · 04:09 更新
+        
+覆盖3位KOL · 微博/头条/微信公众号
+        
+
+            
+
+                
+20+
+                
+原始帖子
+            
+            
+
+                
+9
+                
+有效信号
+            
+            
+
+                
+8
+                
+共识观点
+            
+            
+
+                
+3
+                
+发声KOL
+            
+        
+    
+
+
+        
+
+            
+大盘方向
+
+            
+
+                
+
+                    中共识
+                    ★ 调整接近尾声，但仍是震荡修复
+                
+                
+公开可读来源中，部分KOL认为指数回踩关键均线后出现反弹，短期调整已接近尾声；但整体仍偏震荡修复，并非全面普涨。核心判断是：指数层面风险有所缓和，但赚钱效应仍主要来自结构方向。
+                
+全市场👤 唐史主任司马迁、交易者简放
+
+                    
+
+                        原文
+                        <a href="https://weibo.com/u/2014433131">🔴 唐史主任司马迁</a><a href="https://weibo.com/u/1357064103">🔴 交易者简放</a>
+                    
+            
+            
+
+                
+
+                    中共识
+                    ★ 结构行情延续
+                
+                
+资金并未全面撤退，而是在科技主线、资源方向和防御板块之间轮动。市场特征仍是结构性机会大于指数性机会，板块内部也存在高低切换。
+                
+科技成长、资源、电力、煤炭👤 唐史主任司马迁、交易者简放、挖地瓜的超级鹿鼎公
+
+                    
+
+                        原文
+                        <a href="https://weibo.com/u/2014433131">🔴 唐史主任司马迁</a><a href="https://weibo.com/u/1357064103">🔴 交易者简放</a><a href="https://weibo.com/u/3962719063">🔴 挖地瓜的超级鹿鼎公</a>
+                    
+            
+        
+        
+
+            
+行业板块
+
+            
+
+                
+
+                    强共识
+                    ★ AI/半导体/电子仍是核心主线
+                
+                
+多位KOL继续围绕AI资本开支、GPU、晶圆代工、电子硬件、玻璃基板等方向展开讨论。核心逻辑是算力需求、国产替代和硬件产业链扩散，主线没有明显切换，只是内部轮动和节奏变化。
+                
+AI算力、半导体、电子、玻璃基板👤 唐史主任司马迁、交易者简放
+
+                    
+
+                        原文
+                        <a href="https://weibo.com/u/2014433131">🔴 唐史主任司马迁</a><a href="https://weibo.com/u/1357064103">🔴 交易者简放</a>
+                    
+            
+            
+
+                
+
+                    中共识
+                    ★ 碳酸锂/新能源材料关注度提升
+                
+                
+碳酸锂价格突破前期震荡平台后，市场开始重新关注锂矿复产预期、短期供需缺口、去库延续和储能需求支撑。但同时也存在终端新能源和动力电池需求放缓的风险。
+                
+碳酸锂、锂电材料、储能👤 交易者简放
+
+                    
+
+                        原文
+                        <a href="https://weibo.com/u/1357064103">🔴 交易者简放</a>
+                    
+            
+            
+
+                
+
+                    中共识
+                    ★ 煤炭、电力方向有轮动表现
+                
+                
+煤炭主产区安监升级、月末缺票、供给收紧预期，以及迎峰度夏带来的电力关注，使煤炭、电力等方向成为震荡市里的轮动选择。
+                
+煤炭、电力、公用事业👤 挖地瓜的超级鹿鼎公
+
+                    
+
+                        原文
+                        <a href="https://weibo.com/u/3962719063">🔴 挖地瓜的超级鹿鼎公</a>
+                    
+            
+            
+
+                
+
+                    弱共识
+                    ★ 有色方向短线分歧仍大
+                
+                
+美元利率高企对有色和大宗商品形成压制，但资源品长期逻辑仍被部分资金关注。短线看，有色方向不是一致看多，而是波动较大、分歧较强。
+                
+有色金属、黄金、铜👤 挖地瓜的超级鹿鼎公
+
+                    
+
+                        原文
+                        <a href="https://weibo.com/u/3962719063">🔴 挖地瓜的超级鹿鼎公</a>
+                    
+            
+            
+
+                
+
+                    强共识
+                    ★ 震荡市策略更偏网格/低吸/控仓
+                
+                
+多位KOL强调在震荡行情里不宜追涨，更多采用网格、低吸、波段、控仓等方式应对。市场不是没有机会，但操作节奏比方向判断更重要。
+                
+全市场👤 唐史主任司马迁、交易者简放
+
+                    
+
+                        原文
+                        <a href="https://weibo.com/u/2014433131">🔴 唐史主任司马迁</a><a href="https://weibo.com/u/1357064103">🔴 交易者简放</a>
+                    
+            
+        
+        
+
+            
+个股指向
+
+            
+
+                
+
+                    弱共识
+                    ★ 暂无多来源强个股共识
+                
+                
+今日公开可读内容中，个股层面的交叉验证不足，更多是围绕板块和产业链展开。个股指向不宜强行归纳，暂不单独列为强信号。
+                
+板块强于个股👤 公开可读来源
+
+            
+        
+        
+
+            
+风险提示
+
+            
+
+                
+
+                    中共识
+                    ★ 追涨杀跌风险
+                
+                
+科技、资源等方向均存在快速轮动和高低切换，若只根据短线观点追涨，很容易买在波峰。当前更适合观察共识方向和节奏，而不是把观点直接等同于买卖信号。
+                
+情绪化交易、追涨杀跌👤 交易者简放、挖地瓜的超级鹿鼎公
+
+                    
+
+                        原文
+                        <a href="https://weibo.com/u/1357064103">🔴 交易者简放</a><a href="https://weibo.com/u/3962719063">🔴 挖地瓜的超级鹿鼎公</a>
+                    
+            
+            
+
+                
+
+                    弱共识
+                    ★ 信息噪音风险
+                
+                
+部分来源因登录限制、公开检索不可得或内容不完整，未纳入有效归纳。今日结论只基于可读取内容，不对未读取来源做推断。
+                
+👤 已读取：唐史主任司马迁、交易者简放、挖地瓜的超级鹿鼎公
+
+            
+        
+
+    
+
+        
+
+        数据来源: 微博 · 今日头条 · 微信公众号<br>
+        自动生成于 2026年05月29日 04:09<br>
+        ⚠️ 仅供研究参考，不构成投资建议
